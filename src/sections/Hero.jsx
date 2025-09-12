@@ -1,21 +1,24 @@
 import { PerspectiveCamera } from '@react-three/drei'
-import React, { Suspense } from 'react'
+import React, { Suspense, use } from 'react'
 import { Canvas } from '@react-three/fiber'
 import HackerRoom from '../components/HackerRoom'
 import CanvasLoader from '../components/CanvasLoader'
-import { Leva, useControls } from 'leva'
+import { max } from 'three/tsl'
+import { useMediaQuery } from 'react-responsive';
+import { calculateSizes } from '../constants'
+import Target from '../components/Target'
+import AbstractShape from '../components/AbstractShape'
+import Cube from '../components/Cube'
+import Rings from '../components/Rings'
+import HeroCamera from '../components/HeroCamera'
+import Button from '../components/Button'
 
 const Hero = () => {
+const isSmall = useMediaQuery({ maxWidth: 480 });
+const isMobile = useMediaQuery({ maxWidth: 768 });
+const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1024 });
 
-    const x = useControls('HackerRoom', {
-    rotationX: { value: 2.5, min: -10, max: 10 },
-    rotationY: { value: 0, min: -10, max: 10 },
-    rotationZ: { value: 0, min: -10, max: 10 },
-    positionX: { value: 0, min: -10, max: 10 },
-    positionY: { value: 2.5, min: -10, max: 10 },
-    positionZ: { value: 2.5, min: -10, max: 10 },
-    scale: { value: -1, min: 0.1, max: 10 },
-})
+const sizes = calculateSizes(isSmall, isMobile, isTablet);
 
     return (
         <section className="min-h-screen w-full flex flex-col relative">
@@ -24,18 +27,31 @@ const Hero = () => {
                 <p className="hero_tag text-gray_gradient text-center">Building Product & Brands</p>
             </div>
             <div className="w-full absolute inset-0">
-                <Leva />
                 <Canvas className="w-full h-full">
                     <Suspense fallback={<CanvasLoader />}>
-                        <HackerRoom
-                            position={[x.positionX, x.positionY, x.positionZ]}
-                            rotation={[x.rotationX, x.rotationY, x.rotationZ]}
-                            scale={[x.scale, x.scale, x.scale]}
-                        />
+                        <PerspectiveCamera makeDefault position={[0, 0, 20]} />
+                        <HeroCamera isMobile={isMobile}>
+                            <HackerRoom
+                                position={sizes.deskPosition}
+                                scale={[sizes.deskScale, sizes.deskScale, sizes.deskScale]}
+                                rotation={[0, -Math.PI, 0]}
+                            />
+                        </HeroCamera>
+                        <group>
+                            <Target position={sizes.targetPosition} />
+                            <AbstractShape position={sizes.magicBoxPosition} scale={[12, 12, 12]} />
+                            <Cube position={sizes.cubePosition} />
+                            <Rings position={sizes.ringPosition} />
+                        </group>
                         <ambientLight intensity={1} />
                         <directionalLight position={[10, 10, 10]} intensity={0.5} />
                     </Suspense>
                 </Canvas>
+            </div>
+            <div className="absolute bottom-7 left-0 right-0 w-full z-10 c-space">
+                <a href="#contact" className="w-fit">
+                    <Button name="Let's work together" isBeam containerClass="sm:w-fit w-full sm:min-w-96" />
+                </a>
             </div>
         </section>
     )
