@@ -1,10 +1,29 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { myProjects } from '../constants'
-import { div } from 'three/tsl';
+import { Canvas } from '@react-three/fiber'
+import { Center } from '@react-three/drei'
+import CanvasLoader from '../components/CanvasLoader';
+import DemoComputer from '../components/DemoComputer';
+import { OrbitControls } from '@react-three/drei';
+import { Suspense } from 'react';
 
 const Projects = () => {
 
-    const currentProject = myProjects[0];
+    const projectCount = myProjects.length;
+
+    const [selectedProjectIndex, setSelectedProjectIndex] = useState(0);
+
+    const currentProject = myProjects[selectedProjectIndex];
+
+    const handleNavigation = (direction) => {
+        setSelectedProjectIndex((prevIndex) => {
+            if (direction === 'previous') {
+                return prevIndex === 0 ? projectCount - 1 : prevIndex - 1;
+            } else {
+                return prevIndex === projectCount - 1 ? 0 : prevIndex + 1;
+            }
+        })
+    }
 
     return (
         <section className="c-space my-20">
@@ -33,7 +52,33 @@ const Projects = () => {
                                 </div>
                             ))}
                         </div>
+                        <a className="flex items-center gap-2 cursor-pointer text-white-600" href={currentProject.href} target="_blank">
+                            <p>Check Live Site</p>
+                            <img src="/assets/arrow-up.png" alt="arrow" className="w-3 h-3" />
+                        </a>
                     </div>
+                    <div className="flex justify-between items-center mt-7">
+                        <button className="arrow-btn" onClick={() => handleNavigation('previous')}>
+                            <img src="/assets/left-arrow.png" alt="left arrow" className="w-4 h-4" />
+                        </button>
+                        <button className="arrow-btn" onClick={() => handleNavigation('next')}>
+                            <img src="/assets/right-arrow.png" alt="right arrow" className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+                <div className="border border-black-300 bg-black-200 rounded-lg h-96 w-full">
+                    <Canvas>
+                        <ambientLight intensity={Math.PI} />
+                        <directionalLight position={[10, 10, 5]} />
+                        <Center>
+                            <Suspense fallback={<CanvasLoader />}>
+                                <group scale={2} position={[0, -3, 0]} rotation={[0, -0.1, 0]}>
+                                    <DemoComputer texture={currentProject.texture} />
+                                </group>
+                            </Suspense>
+                        </Center>
+                        <OrbitControls maxPolarAngle={Math.PI / 2} enableZoom={false} />
+                    </Canvas>
                 </div>
             </div>
         </section>
